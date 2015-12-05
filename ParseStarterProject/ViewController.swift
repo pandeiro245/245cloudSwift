@@ -17,6 +17,8 @@ class ViewController: UIViewController {
     let _countDownMax:Int = 24 * 60
     var _countDownNum:Int = 24 * 60
     var _circleView:UIView!
+    let workload = PFObject(className: "Workload")
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -24,6 +26,7 @@ class ViewController: UIViewController {
         // save Accesslog
         let accessLog = PFObject(className: "Accesslog")
         accessLog["url"] = "iOS"
+        accessLog["user"] = PFUser.currentUser()
         accessLog.saveInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
             print("Object has been saved.")
         }
@@ -58,6 +61,9 @@ class ViewController: UIViewController {
         _circleView = UIView(frame : CGRectMake((self.view.frame.width/2)-100, (self.view.frame.height/2)-100, 200, 200))
         _circleView.layer.addSublayer(drawCircle(_circleView.frame.width, strokeColor: UIColor(red:0.0,green:0.0,blue:0.0,alpha:0.2)))
         _circleView.layer.addSublayer(drawCircle(_circleView.frame.width, strokeColor: UIColor(red:0.0,green:0.0,blue:0.0,alpha:1.0)))
+        
+        _countNumberLabel.hidden = true
+        _circleView.hidden = true
         self.view.addSubview(_circleView)
         
         
@@ -69,6 +75,16 @@ class ViewController: UIViewController {
     
     internal func onClickMyButton(sender: UIButton){
         myButton.hidden = true
+        _countNumberLabel.hidden = false
+        _circleView.hidden = false
+        
+        // insert Workload
+        workload["user"] = PFUser.currentUser()
+        
+        workload.saveInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
+            print("Object has been saved.")
+        }
+        
         print("onClickMyButton:")
         print("sender.currentTitile: \(sender.currentTitle)")
         print("sender.tag:\(sender.tag)")
@@ -87,7 +103,7 @@ class ViewController: UIViewController {
     }
     
     func drawCircle(viewWidth:CGFloat, strokeColor:UIColor) -> CAShapeLayer {
-        var circle:CAShapeLayer = CAShapeLayer()
+        let circle:CAShapeLayer = CAShapeLayer()
         // ゲージ幅
         let lineWidth: CGFloat = 20
         // 描画領域のwidth
@@ -108,7 +124,7 @@ class ViewController: UIViewController {
     
     func circleAnimation(layer:CAShapeLayer) {
         // アニメーションkeyを設定
-        var drawAnimation = CABasicAnimation(keyPath: "strokeEnd")
+        let drawAnimation = CABasicAnimation(keyPath: "strokeEnd")
         // callbackで使用
         drawAnimation.setValue(layer, forKey:"animationLayer")
         // callbackを使用する場合
@@ -133,6 +149,14 @@ class ViewController: UIViewController {
         _countNumberLabel.text = String(_countDownNum)
         
         if _countDownNum <= 0 {
+            
+            workload["number"] = 1
+            workload["is_done"] = true
+            workload.saveInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
+                print("Object has been saved.")
+            }
+            
+            
             //次の画面へ遷移(navigationControllerの場合)
             //let nextViewController:ViewController = ViewController()
             //self.navigationController?.pushViewController(nextViewController, animated: false)
