@@ -36,8 +36,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // ParseCrashReporting.enable()
         //
         // Uncomment and fill in with your Parse credentials:
-        Parse.setApplicationId("xDQHbCXqlrdCoOAnTbunjJjoxxBhSbQll1vKIcSQ",
-            clientKey: "zNRauhcdXBU4qndLr3lkte6q6Q2a72j7tHi29T2U")
+        Parse.setApplicationId("8QzCMkUbx7TyEApZjDRlhpLQ2OUj0sQWTnkEExod",
+            clientKey: "dzOhrpn7oLhlyTkThmHgX3cahM6OR8mSNm1XENIB")
+        
+        //Parse.setApplicationId("jemiGIUHsvNeVQojqiUaXxFJZvzFDxFbUsfjPr78",
+        //    clientKey: "***")
+        
         //
         // If you are using Facebook, uncomment and add your FacebookAppID to your bundle's plist as
         // described here: https://developers.facebook.com/docs/getting-started/facebook-sdk-for-ios/
@@ -72,14 +76,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         
         
-        PFUser.logInWithUsernameInBackground("GOUurfrwHyvBimJEsLVFugyxb", password:"testpass") {
-            (user: PFUser?, error: NSError?) -> Void in
-            if user != nil {
-                // Do stuff after successful login.
-            } else {
-                // The login failed. Check error to see why.
-            }
-        }
+
         
 
         //

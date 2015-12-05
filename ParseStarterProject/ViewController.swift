@@ -18,17 +18,31 @@ class ViewController: UIViewController {
     var _countDownNum:Int = 24 * 60
     var _circleView:UIView!
     let workload = PFObject(className: "Workload")
+    
+    
+
 
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // save Accesslog
-        let accessLog = PFObject(className: "Accesslog")
-        accessLog["url"] = "iOS"
-        accessLog["user"] = PFUser.currentUser()
-        accessLog.saveInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
-            print("Object has been saved.")
+        
+        PFUser.logInWithUsernameInBackground("GOUurfrwHyvBimJEsLVFugyxb", password:"testpass") {
+            (user: PFUser?, error: NSError?) -> Void in
+            if user != nil {
+                
+                // save Accesslog
+                let accessLog = PFObject(className: "Accesslog")
+                accessLog["url"] = "iOS"
+                accessLog["user"] = PFUser.currentUser()
+                accessLog.saveInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
+                    print("Object has been saved.")
+                }
+                print("logged in!")
+                // Do stuff after successful login.
+            } else {
+                // The login failed. Check error to see why.
+            }
         }
         
         // show start button
@@ -80,9 +94,49 @@ class ViewController: UIViewController {
         
         // insert Workload
         workload["user"] = PFUser.currentUser()
+        let iconUrl = "https://graph.facebook.com/10152403406713381/picture?height=40&width=40"
+        workload["icon_url"] = iconUrl
         
-        workload.saveInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
-            print("Object has been saved.")
+        let query = PFQuery(className:"Workload")
+        
+        let formatter = NSDateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = NSTimeZone(name: "JST")
+        
+        let date:NSDate = NSDate()
+        
+        let dateStr: String = formatter.stringFromDate(date)
+        //let dateStr: String = "2015-12-6"
+        
+        
+        
+        let midnight: NSDate? = formatter.dateFromString(dateStr)
+
+        
+        print(midnight)
+        query.whereKey("createdAt", greaterThan: midnight!)
+        query.whereKey("user", equalTo:PFUser.currentUser()!)
+        query.whereKey("is_done", equalTo:true)
+        
+        query.findObjectsInBackgroundWithBlock {
+            (objects: [PFObject]?, error: NSError?) -> Void in
+            
+            if error == nil {
+                // The find succeeded.
+                print("Successfully retrieved \(objects!.count) scores.")
+                // Do something with the found objects
+                
+                
+                self.workload["number"] = objects!.count + 1
+                
+                self.workload.saveInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
+                    print("Object has been saved.")
+                }
+                
+                
+            } else {
+                print("Error: \(error!) \(error!.userInfo)")
+            }
         }
     }
     
@@ -145,11 +199,20 @@ class ViewController: UIViewController {
         let _min:Int = _countDownNum / 60
         let _sec:Int = _countDownNum - _min * 60
         
-        _countNumberLabel.text = String(_min.description + " : " + _sec.description)
+        var _min2:String = _min.description
+        var _sec2:String = _sec.description
+        
+        if _min < 10 {
+            _min2 = "0" + _min2
+        }
+        if _sec < 10 {
+            _sec2 = "0" + _sec2
+        }
+        
+        _countNumberLabel.text = String(_min2 + " : " + _sec2)
         
         if _countDownNum <= 0 {
             
-            workload["number"] = 1
             workload["is_done"] = true
             workload.saveInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
                 print("Object has been saved.")
