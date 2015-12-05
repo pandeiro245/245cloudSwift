@@ -76,7 +76,7 @@ class ViewController: UIViewController {
     internal func onClickMyButton(sender: UIButton){
         myButton.hidden = true
         _countNumberLabel.hidden = false
-        _circleView.hidden = false
+        //_circleView.hidden = false
         
         // insert Workload
         workload["user"] = PFUser.currentUser()
@@ -84,11 +84,6 @@ class ViewController: UIViewController {
         workload.saveInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
             print("Object has been saved.")
         }
-        
-        print("onClickMyButton:")
-        print("sender.currentTitile: \(sender.currentTitle)")
-        print("sender.tag:\(sender.tag)")
-        
     }
     
     
@@ -146,7 +141,11 @@ class ViewController: UIViewController {
         let layer:CAShapeLayer = anim.valueForKey("animationLayer") as! CAShapeLayer
         _countDownNum--
         // 表示ラベルの更新
-        _countNumberLabel.text = String(_countDownNum)
+        
+        let _min:Int = _countDownNum / 60
+        let _sec:Int = _countDownNum - _min * 60
+        
+        _countNumberLabel.text = String(_min.description + " : " + _sec.description)
         
         if _countDownNum <= 0 {
             
