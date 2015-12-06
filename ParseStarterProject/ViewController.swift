@@ -17,11 +17,9 @@ class ViewController: UIViewController {
     let _countDownMax:Int = 24 * 60
     var _countDownNum:Int = 24 * 60
     var _circleView:UIView!
+    var startedAt:NSDate = NSDate()
+    
     let workload = PFObject(className: "Workload")
-    
-    
-
-
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -92,6 +90,8 @@ class ViewController: UIViewController {
         _countNumberLabel.hidden = false
         //_circleView.hidden = false
         
+        startedAt = NSDate()
+        
         // insert Workload
         workload["user"] = PFUser.currentUser()
         let iconUrl = "https://graph.facebook.com/10152403406713381/picture?height=40&width=40"
@@ -107,8 +107,6 @@ class ViewController: UIViewController {
         
         let dateStr: String = formatter.stringFromDate(date)
         //let dateStr: String = "2015-12-6"
-        
-        
         
         let midnight: NSDate? = formatter.dateFromString(dateStr)
 
@@ -193,7 +191,12 @@ class ViewController: UIViewController {
     
     override func animationDidStop(anim: CAAnimation!, finished flag: Bool) {
         let layer:CAShapeLayer = anim.valueForKey("animationLayer") as! CAShapeLayer
-        _countDownNum--
+        //_countDownNum--
+        let now = NSDate()
+        _countDownNum = 24 * 60 - Int(now.timeIntervalSinceDate(startedAt))
+        print(_countDownNum)
+        
+        
         // 表示ラベルの更新
         
         let _min:Int = _countDownNum / 60
