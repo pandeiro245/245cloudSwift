@@ -14,7 +14,6 @@ class ViewController: UIViewController {
     private var myButton: UIButton!
     
     var _countNumberLabel:UILabel!
-    let _countDownMax:Int = 24 * 60
     var _countDownNum:Int = 24 * 60
     var _circleView:UIView!
     var startedAt:NSDate = NSDate()
@@ -34,7 +33,7 @@ class ViewController: UIViewController {
                 accessLog["url"] = "iOS"
                 accessLog["user"] = PFUser.currentUser()
                 accessLog.saveInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
-                    print("Object has been saved.")
+                    print("Accesslog Object has been created.")
                 }
                 print("logged in!")
                 // Do stuff after successful login.
@@ -88,7 +87,7 @@ class ViewController: UIViewController {
     internal func onClickMyButton(sender: UIButton){
         myButton.hidden = true
         _countNumberLabel.hidden = false
-        //_circleView.hidden = false
+        _circleView.hidden = false
         
         startedAt = NSDate()
         
@@ -106,12 +105,8 @@ class ViewController: UIViewController {
         let date:NSDate = NSDate()
         
         let dateStr: String = formatter.stringFromDate(date)
-        //let dateStr: String = "2015-12-6"
-        
         let midnight: NSDate? = formatter.dateFromString(dateStr)
 
-        
-        print(midnight)
         query.whereKey("createdAt", greaterThan: midnight!)
         query.whereKey("user", equalTo:PFUser.currentUser()!)
         query.whereKey("is_done", equalTo:true)
@@ -122,83 +117,53 @@ class ViewController: UIViewController {
             if error == nil {
                 // The find succeeded.
                 print("Successfully retrieved \(objects!.count) scores.")
-                // Do something with the found objects
-                
                 
                 self.workload["number"] = objects!.count + 1
                 
                 self.workload.saveInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
-                    print("Object has been saved.")
+                    print("Workload Object has been updated.")
                 }
-                
-                
             } else {
                 print("Error: \(error!) \(error!.userInfo)")
             }
         }
-    }
-    
-    
-    
-    // 遷移毎に実行
-    override func viewWillAppear(animated: Bool) {
-        // 数値をリセット
-        _countDownNum = _countDownMax
-        _countNumberLabel.text = String(_countDownNum)
-        // アニメーション開始
-        circleAnimation(_circleView.layer.sublayers![1] as! CAShapeLayer)
+        
+        NSTimer.scheduledTimerWithTimeInterval(1.0, target: self, selector: Selector("everySecond:"), userInfo: nil, repeats: true)
+        self.circleAnimation(self._circleView.layer.sublayers![1] as! CAShapeLayer)
+        
     }
     
     func drawCircle(viewWidth:CGFloat, strokeColor:UIColor) -> CAShapeLayer {
         let circle:CAShapeLayer = CAShapeLayer()
-        // ゲージ幅
         let lineWidth: CGFloat = 20
-        // 描画領域のwidth
         let viewScale: CGFloat = viewWidth
-        // 円のサイズ
         let radius: CGFloat = viewScale - lineWidth
-        // 円の描画path設定
         circle.path = UIBezierPath(roundedRect: CGRectMake(0, 0, radius, radius), cornerRadius: radius / 2).CGPath
-        // 円のポジション設定
         circle.position = CGPointMake(lineWidth / 2, lineWidth / 2)
-        // 塗りの色を設定
         circle.fillColor = UIColor.clearColor().CGColor
-        // 線の色を設定
         circle.strokeColor = strokeColor.CGColor
-        // 線の幅を設定
         circle.lineWidth = lineWidth
         return circle   }
     
     func circleAnimation(layer:CAShapeLayer) {
-        // アニメーションkeyを設定
         let drawAnimation = CABasicAnimation(keyPath: "strokeEnd")
-        // callbackで使用
         drawAnimation.setValue(layer, forKey:"animationLayer")
-        // callbackを使用する場合
         drawAnimation.delegate = self
-        // アニメーション間隔の指定
-        drawAnimation.duration = 1.0
-        // 繰り返し回数の指定
+        drawAnimation.duration = 24 * 60.0
         drawAnimation.repeatCount = 1.0
-        // 起点と目標点の変化比率を設定 (0.0 〜 1.0)
         drawAnimation.fromValue = 0.0
         drawAnimation.toValue = 1.0
-        // イージング設定
         drawAnimation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
         
         layer.addAnimation(drawAnimation, forKey: "circleAnimation")
     }
     
-    override func animationDidStop(anim: CAAnimation!, finished flag: Bool) {
-        let layer:CAShapeLayer = anim.valueForKey("animationLayer") as! CAShapeLayer
+    func everySecond(timer: NSTimer) {
         //_countDownNum--
         let now = NSDate()
         _countDownNum = 24 * 60 - Int(now.timeIntervalSinceDate(startedAt))
-        print(_countDownNum)
-        
         
         // 表示ラベルの更新
-        
         let _min:Int = _countDownNum / 60
         let _sec:Int = _countDownNum - _min * 60
         
@@ -212,23 +177,29 @@ class ViewController: UIViewController {
             _sec2 = "0" + _sec2
         }
         
+        print(String(_min2 + " : " + _sec2));
+        
         _countNumberLabel.text = String(_min2 + " : " + _sec2)
         
         if _countDownNum <= 0 {
-            
-            workload["is_done"] = true
-            workload.saveInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
-                print("Object has been saved.")
-            }
-            
+            //complete()
             
             //次の画面へ遷移(navigationControllerの場合)
             //let nextViewController:ViewController = ViewController()
             //self.navigationController?.pushViewController(nextViewController, animated: false)
             
-        } else {
-            circleAnimation(layer)
         }
     }
     
+    func complete() {
+        workload["is_done"] = true
+        workload.saveInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
+            print("Workload Object has been updated.")
+        }
+    }
+
+    override func animationDidStop(anim: CAAnimation!, finished flag: Bool) {
+        let layer:CAShapeLayer = anim.valueForKey("animationLayer") as! CAShapeLayer
+        complete()
+    }
 }

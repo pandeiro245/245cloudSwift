@@ -36,11 +36,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // ParseCrashReporting.enable()
         //
         // Uncomment and fill in with your Parse credentials:
-        Parse.setApplicationId("8QzCMkUbx7TyEApZjDRlhpLQ2OUj0sQWTnkEExod",
-            clientKey: "dzOhrpn7oLhlyTkThmHgX3cahM6OR8mSNm1XENIB")
-        
-        //Parse.setApplicationId("jemiGIUHsvNeVQojqiUaXxFJZvzFDxFbUsfjPr78",
-        //    clientKey: "***")
+        if true { // development
+            Parse.setApplicationId("8QzCMkUbx7TyEApZjDRlhpLQ2OUj0sQWTnkEExod",
+                clientKey: "dzOhrpn7oLhlyTkThmHgX3cahM6OR8mSNm1XENIB")
+        } else { // production
+            Parse.setApplicationId("jemiGIUHsvNeVQojqiUaXxFJZvzFDxFbUsfjPr78",
+                clientKey: "")
+        }
         
         //
         // If you are using Facebook, uncomment and add your FacebookAppID to your bundle's plist as
