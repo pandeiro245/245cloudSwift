@@ -14,11 +14,13 @@ class ViewController: UIViewController {
     private var myButton: UIButton!
     
     var _countNumberLabel:UILabel!
+    var _countWorkloadNumberLabel:UILabel!
+    
     var _countDownNum:Int = 24 * 60
     var _circleView:UIView!
     var startedAt:NSDate = NSDate()
     
-    let workload = PFObject(className: "Workload")
+    var workload = PFObject(className: "Workload")
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -54,22 +56,27 @@ class ViewController: UIViewController {
         myButton.setTitle("Let's Start !!", forState: UIControlState.Highlighted)
         myButton.setTitleColor(UIColor.blackColor(), forState: UIControlState.Highlighted)
         myButton.layer.cornerRadius = 20.0
-        myButton.layer.position = CGPoint(x: self.view.frame.width/2, y:200)
+        myButton.layer.position = CGPoint(x: self.view.frame.width/2, y:100)
         myButton.tag = 1
         myButton.addTarget(self, action: "onClickMyButton:", forControlEvents: .TouchUpInside)
         self.view.addSubview(myButton)
         
-        
+
+        _countWorkloadNumberLabel = UILabel(frame: CGRectMake(0, 150, self.view.frame.width, self.view.frame.height))
+        _countWorkloadNumberLabel.font = UIFont(name: "HelveticaNeue", size: 54)
+        _countWorkloadNumberLabel.textAlignment = NSTextAlignment.Center
+        _countWorkloadNumberLabel.baselineAdjustment = UIBaselineAdjustment.AlignCenters
+        self.view.addSubview(_countWorkloadNumberLabel)
+
         
         // カウントダウン数値ラベル設定
-        _countNumberLabel = UILabel(frame: CGRectMake(0, 0, self.view.frame.width, self.view.frame.height))
+        _countNumberLabel = UILabel(frame: CGRectMake(0, -100, self.view.frame.width, self.view.frame.height))
         _countNumberLabel.font = UIFont(name: "HelveticaNeue", size: 54)
-        // 中心揃え
         _countNumberLabel.textAlignment = NSTextAlignment.Center
         _countNumberLabel.baselineAdjustment = UIBaselineAdjustment.AlignCenters
         self.view.addSubview(_countNumberLabel)
         
-        _circleView = UIView(frame : CGRectMake((self.view.frame.width/2)-100, (self.view.frame.height/2)-100, 200, 200))
+        _circleView = UIView(frame : CGRectMake((self.view.frame.width/2)-100, (self.view.frame.height/2)-200, 200, 200))
         _circleView.layer.addSublayer(drawCircle(_circleView.frame.width, strokeColor: UIColor(red:0.0,green:0.0,blue:0.0,alpha:0.2)))
         _circleView.layer.addSublayer(drawCircle(_circleView.frame.width, strokeColor: UIColor(red:0.0,green:0.0,blue:0.0,alpha:1.0)))
         
@@ -77,6 +84,7 @@ class ViewController: UIViewController {
         _circleView.hidden = true
         self.view.addSubview(_circleView)
         
+        initWorkload()
         
     }
 
@@ -85,48 +93,15 @@ class ViewController: UIViewController {
     }
     
     internal func onClickMyButton(sender: UIButton){
+        self.workload.saveInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
+            print("Workload Object has been updated in onClick.")
+        }
+        
         myButton.hidden = true
         _countNumberLabel.hidden = false
         _circleView.hidden = false
         
         startedAt = NSDate()
-        
-        // insert Workload
-        workload["user"] = PFUser.currentUser()
-        let iconUrl = "https://graph.facebook.com/10152403406713381/picture?height=40&width=40"
-        workload["icon_url"] = iconUrl
-        
-        let query = PFQuery(className:"Workload")
-        
-        let formatter = NSDateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        formatter.timeZone = NSTimeZone(name: "JST")
-        
-        let date:NSDate = NSDate()
-        
-        let dateStr: String = formatter.stringFromDate(date)
-        let midnight: NSDate? = formatter.dateFromString(dateStr)
-
-        query.whereKey("createdAt", greaterThan: midnight!)
-        query.whereKey("user", equalTo:PFUser.currentUser()!)
-        query.whereKey("is_done", equalTo:true)
-        
-        query.findObjectsInBackgroundWithBlock {
-            (objects: [PFObject]?, error: NSError?) -> Void in
-            
-            if error == nil {
-                // The find succeeded.
-                print("Successfully retrieved \(objects!.count) scores.")
-                
-                self.workload["number"] = objects!.count + 1
-                
-                self.workload.saveInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
-                    print("Workload Object has been updated.")
-                }
-            } else {
-                print("Error: \(error!) \(error!.userInfo)")
-            }
-        }
         
         NSTimer.scheduledTimerWithTimeInterval(1.0, target: self, selector: Selector("everySecond:"), userInfo: nil, repeats: true)
         self.circleAnimation(self._circleView.layer.sublayers![1] as! CAShapeLayer)
@@ -159,7 +134,6 @@ class ViewController: UIViewController {
     }
     
     func everySecond(timer: NSTimer) {
-        //_countDownNum--
         let now = NSDate()
         _countDownNum = 24 * 60 - Int(now.timeIntervalSinceDate(startedAt))
         
@@ -177,12 +151,13 @@ class ViewController: UIViewController {
             _sec2 = "0" + _sec2
         }
         
-        print(String(_min2 + " : " + _sec2));
+        //print(String(_min2 + " : " + _sec2));
         
         _countNumberLabel.text = String(_min2 + " : " + _sec2)
         
-        if _countDownNum <= 0 {
-            //complete()
+        if _countDownNum <= 24 * 60 - 10 {
+            complete()
+            
             
             //次の画面へ遷移(navigationControllerの場合)
             //let nextViewController:ViewController = ViewController()
@@ -191,15 +166,52 @@ class ViewController: UIViewController {
         }
     }
     
+    func initWorkload() {
+        // insert Workload
+        workload["user"] = PFUser.currentUser()
+        let iconUrl = "https://graph.facebook.com/10152403406713381/picture?height=40&width=40"
+        workload["icon_url"] = iconUrl
+        let query = PFQuery(className:"Workload")
+        let formatter = NSDateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = NSTimeZone(name: "JST")
+        let date:NSDate = NSDate()
+        let dateStr: String = formatter.stringFromDate(date)
+        let midnight: NSDate? = formatter.dateFromString(dateStr)
+        query.whereKey("createdAt", greaterThan: midnight!)
+        query.whereKey("user", equalTo:PFUser.currentUser()!)
+        query.whereKey("is_done", equalTo:true)
+        query.findObjectsInBackgroundWithBlock {
+            (objects: [PFObject]?, error: NSError?) -> Void in
+            
+            if error == nil {
+                // The find succeeded.
+                print("Successfully retrieved \(objects!.count) scores.")
+                
+                self.workload["number"] = objects!.count + 1
+                self._countWorkloadNumberLabel.text = "本日" + (objects!.count + 1).description + "回目"
+            } else {
+                print("Error: \(error!) \(error!.userInfo)")
+            }
+        }
+        
+    }
+    
     func complete() {
+        myButton.hidden = false
+        _countNumberLabel.hidden = true
+        _circleView.hidden = true
+        
         workload["is_done"] = true
         workload.saveInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
-            print("Workload Object has been updated.")
+            print("Workload Object has been updated in complete.")
+            var workload = PFObject(className: "Workload")
+            self.startedAt = NSDate()
+            self.initWorkload()
         }
     }
 
     override func animationDidStop(anim: CAAnimation!, finished flag: Bool) {
         let layer:CAShapeLayer = anim.valueForKey("animationLayer") as! CAShapeLayer
-        complete()
     }
 }
