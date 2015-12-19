@@ -135,7 +135,8 @@ class ViewController: UIViewController {
     
     func everySecond(timer: NSTimer) {
         let now = NSDate()
-        _countDownNum = 24 * 60 - Int(now.timeIntervalSinceDate(startedAt))
+        //_countDownNum = 24 * 60 - Int(now.timeIntervalSinceDate(startedAt))
+        _countDownNum = 5 - Int(now.timeIntervalSinceDate(startedAt))
         
         // 表示ラベルの更新
         let _min:Int = _countDownNum / 60
@@ -155,14 +156,8 @@ class ViewController: UIViewController {
         
         _countNumberLabel.text = String(_min2 + " : " + _sec2)
         
-        if _countDownNum <= 24 * 60 - 10 {
-            complete()
-            
-            
-            //次の画面へ遷移(navigationControllerの場合)
-            //let nextViewController:ViewController = ViewController()
-            //self.navigationController?.pushViewController(nextViewController, animated: false)
-            
+        if _countDownNum <= 0 {
+            complete(timer)
         }
     }
     
@@ -197,10 +192,12 @@ class ViewController: UIViewController {
         
     }
     
-    func complete() {
+    func complete(timer: NSTimer) {
         myButton.hidden = false
         _countNumberLabel.hidden = true
         _circleView.hidden = true
+        
+        timer.invalidate()
         
         workload["is_done"] = true
         workload.saveInBackgroundWithBlock { (success: Bool, error: NSError?) -> Void in
@@ -209,6 +206,12 @@ class ViewController: UIViewController {
             self.startedAt = NSDate()
             self.initWorkload()
         }
+        
+        
+        //次の画面へ遷移(navigationControllerの場合)
+        let commentsViewController:CommentsViewController = CommentsViewController()
+        self.navigationController?.pushViewController(commentsViewController, animated: false)
+        
     }
 
     override func animationDidStop(anim: CAAnimation!, finished flag: Bool) {
