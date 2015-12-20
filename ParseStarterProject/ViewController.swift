@@ -25,6 +25,8 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        self.view.backgroundColor = UIColor.whiteColor()
+        
         
         PFUser.logInWithUsernameInBackground("GOUurfrwHyvBimJEsLVFugyxb", password:"testpass") {
             (user: PFUser?, error: NSError?) -> Void in
@@ -209,9 +211,8 @@ class ViewController: UIViewController {
         
         
         //次の画面へ遷移(navigationControllerの場合)
-        let commentsViewController:CommentsViewController = CommentsViewController()
+        let commentsViewController = CommentsViewController()
         self.navigationController?.pushViewController(commentsViewController, animated: false)
-        
     }
 
     override func animationDidStop(anim: CAAnimation!, finished flag: Bool) {

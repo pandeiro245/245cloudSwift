@@ -21,6 +21,8 @@ import Parse
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+    
+    var myNavigationController: UINavigationController? // http://qiita.com/mochizukikotaro/items/f053495eb130e92e13e8
 
     //--------------------------------------
     // MARK: - UIApplicationDelegate
@@ -107,6 +109,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         //            application.registerForRemoteNotificationTypes(types)
         //        }
 
+        
+        // http://qiita.com/mochizukikotaro/items/f053495eb130e92e13e8
+        let first: ViewController = ViewController()
+        myNavigationController = UINavigationController(rootViewController: first)
+        self.window = UIWindow(frame: UIScreen.mainScreen().bounds)
+        self.window?.rootViewController = myNavigationController
+        self.window?.makeKeyAndVisible()
+        
         return true
     }
 

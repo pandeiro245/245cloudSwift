@@ -12,11 +12,44 @@ import Parse
 
 class CommentsViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     // Tableで使用する配列を設定する
-    private let myItems: NSArray = ["TEST1", "TEST2", "TEST3"]
+    private var myItems = []
+    //private var myItems = ["aaa","bbb","ccc"]
+
     private var myTableView: UITableView!
     
     override func viewDidLoad() {
+        print("CommentsViewController is loaded")
+        
         super.viewDidLoad()
+        
+        let query = PFQuery(className:"Comment")
+        query.findObjectsInBackgroundWithBlock {
+            (objects: [PFObject]?, error: NSError?) -> Void in
+            
+            self.render()
+            
+            
+            if error == nil {
+                // The find succeeded.
+                print("Successfully retrieved \(objects!.count) comments.")
+                
+                for(var i = 0; i < objects!.count; i++) {
+                    myItems.append(objects[i]["body"])
+                }
+                self.render()
+                
+                
+                
+                
+            } else {
+                print("Error: \(error!) \(error!.userInfo)")
+            }
+        }
+
+    }
+    
+    func render(){
+        print("CommentsViewController.render is loaded")
         
         // Status Barの高さを取得する.
         let barHeight: CGFloat = UIApplication.sharedApplication().statusBarFrame.size.height
